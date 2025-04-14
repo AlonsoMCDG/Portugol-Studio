@@ -60,6 +60,7 @@ programa
 
 	/// VARIÁVEIS DO MENU SUPERIOR
 	real tamanho_texto_botoes_menu = 20.0
+	inteiro cor_texto_botoes_menu = 0x000000
 
 	// dimensões do menu superior
 	inteiro largura_barra_menu_superior = largura_janela
@@ -105,7 +106,7 @@ programa
 	inteiro cor_fundo_tabela_de_jogadores = 0x33aa99
 
 	// dimensões da linha
-	inteiro altura_linha_tabela_de_jogadores = 60
+	inteiro altura_linha_tabela_de_jogadores = 55
 	inteiro largura_linha_tabela_de_jogadores = largura_tabela_de_jogadores
 	inteiro cor_fundo_linha_tabela_de_jogadores = 0xeeeeee
 
@@ -122,11 +123,11 @@ programa
 	inteiro x_inicial_botoes_tabela_de_jogadores = largura_linha_tabela_de_jogadores / 2 + largura_linha_tabela_de_jogadores / 4
 	inteiro cor_fundo_botoes_de_pontuacao_tabela_de_jogadores = 0xabcdef
 
-	real tamanho_texto_botoes_de_pontuacao_tabela_de_jogadores = 22.0
+	real tamanho_texto_botoes_de_pontuacao_tabela_de_jogadores = 20.0
 	cadeia texto_botoes_de_pontuacao_tabela_de_jogadores[NUMERO_DE_BOTOES_DE_PONTUACAO_TABELA_DE_JOGADORES] = {"-5", "-10", "+5", "+10"}
 	inteiro acao_botoes_de_pontuacao_tabela_de_jogadores[NUMERO_DE_BOTOES_DE_PONTUACAO_TABELA_DE_JOGADORES] = {-5, -10, +5, +10}
-	inteiro cor_botoes_de_pontuacao_positiva_tabela_de_jogadores = 0x22ff77
-	inteiro cor_botoes_de_pontuacao_negativa_tabela_de_jogadores = 0xff5555
+	inteiro cor_botoes_de_pontuacao_positiva_tabela_de_jogadores = 0x02db26
+	inteiro cor_botoes_de_pontuacao_negativa_tabela_de_jogadores = 0xf53838
 
 	// controle do número de jogadores
 	inteiro numero_de_jogadores = 3
@@ -254,20 +255,15 @@ programa
 
 	funcao inteiro escurecer_cor(inteiro cor, inteiro valor)
 	{
-		inteiro r = tp.real_para_inteiro(mat.maior_numero(0.0, (cor & 0xff0000) - valor + 0.0))
-		inteiro g = tp.real_para_inteiro(mat.maior_numero(0.0, (cor & 0x00ff00) - valor + 0.0))
-		inteiro b = tp.real_para_inteiro(mat.maior_numero(0.0, (cor & 0x0000ff) - valor + 0.0))
-		
-		retorne r | g | b
-	}
-
-	funcao real luminancia(inteiro cor)
-	{
-		inteiro r = cor & 0xff0000
-		inteiro g = cor & 0x00ff00
-		inteiro b = cor & 0x0000ff
-
-		retorne 0.299 * r + 0.587 * g + 0.114 * b
+		inteiro r = (cor >> 16) & 0xFF
+		inteiro g = (cor >> 8) & 0xFF
+		inteiro b = cor & 0xFF
+	
+		r = tp.real_para_inteiro(mat.maior_numero(0.0, r - valor + 0.0))
+		g = tp.real_para_inteiro(mat.maior_numero(0.0, g - valor + 0.0))
+		b = tp.real_para_inteiro(mat.maior_numero(0.0, b - valor + 0.0))
+	
+		retorne (r << 16) | (g << 8) | b
 	}
 
 	funcao inteiro escolher_cor_sombra(inteiro cor_texto, inteiro cor_botao)
@@ -283,6 +279,46 @@ programa
 			retorne 0xffffff // branco
 		// Caso o texto tenha bom contraste com o botão, use sombra intermediária
 		retorne escurecer_cor(cor_botao, 0x3c)
+	}
+
+	funcao real luminancia(inteiro cor)
+	{
+		real r = ((cor >> 16) & 0xFF) / 255.0
+		real g = ((cor >> 8) & 0xFF) / 255.0
+		real b = (cor & 0xFF) / 255.0
+		retorne 0.299 * r + 0.587 * g + 0.114 * b
+	}
+
+	funcao inteiro mesclar_cores(inteiro cor1, inteiro cor2, real fator)
+	{
+		inteiro r1 = (cor1 >> 16) & 0xFF
+		inteiro g1 = (cor1 >> 8) & 0xFF
+		inteiro b1 = cor1 & 0xFF
+	
+		inteiro r2 = (cor2 >> 16) & 0xFF
+		inteiro g2 = (cor2 >> 8) & 0xFF
+		inteiro b2 = cor2 & 0xFF
+	
+		inteiro r = tp.real_para_inteiro(r1 * (1.0 - fator) + r2 * fator)
+		inteiro g = tp.real_para_inteiro(g1 * (1.0 - fator) + g2 * fator)
+		inteiro b = tp.real_para_inteiro(b1 * (1.0 - fator) + b2 * fator)
+	
+		retorne (r << 16) | (g << 8) | b
+	}
+
+	funcao inteiro sombra_dinamica(inteiro cor_texto, inteiro cor_botao)
+	{
+		real lum_texto = luminancia(cor_texto)
+		real lum_botao = luminancia(cor_botao)
+		real contraste = mat.valor_absoluto(lum_texto - lum_botao)
+
+		se (lum_texto < 0.2) 		// texto com cor perto do preto
+			retorne mesclar_cores(cor_botao, 0xffffff, 0.4)
+		senao se (lum_texto > 0.8)	// texto com cor perto do branco
+			retorne mesclar_cores(cor_botao, 0x000000, 0.8)
+		senao					// luminancia mediana
+			retorne mesclar_cores(cor_botao, cor_texto, 0.5)
+		
 	}
 	
 	funcao desenhar_botao(inteiro x_botao, inteiro y_botao, inteiro largura_botao, inteiro altura_botao, inteiro cor_botao, logico arredondar_cantos, cadeia texto, real tamanho_texto, inteiro cor_texto, logico centralizar_texto)
@@ -315,7 +351,7 @@ programa
 			y_t = y_b + altura_botao / 2 - g.altura_texto(texto)
 		}
 		
-		inteiro cor_sombra = tp.real_para_inteiro(mat.maior_numero(0.0, cor_botao - 0x022222 + 0.0))
+		inteiro cor_sombra = tp.real_para_inteiro(mat.maior_numero(0.0, escurecer_cor(cor_botao, 0x33) + 0.0))
 
 		// sombra do botão
 		g.definir_cor(cor_sombra)
@@ -330,7 +366,7 @@ programa
 		g.desenhar_retangulo(x_b, y_b, largura_botao, altura_botao, arredondar_cantos, falso)
 
 		// sombra do texto
-		g.definir_cor(escolher_cor_sombra(cor_texto, cor_botao))
+		g.definir_cor(sombra_dinamica(cor_texto, cor_botao))
 		g.desenhar_texto(x_t + 1, y_t + 1, texto)
 
 		// texto
@@ -348,6 +384,7 @@ programa
 	{
 		inteiro largura_texto, altura_texto, x, y, largura, altura, cor_botao, cor_texto
 		real tamanho_texto = tamanho_texto_botoes_menu
+		cadeia texto_botao
 
 		// definir modos de como os botões serão desenhados
 		definir_modo_de_preenchimento(verdadeiro)
@@ -363,13 +400,17 @@ programa
 		
 		
 		/*  DESENHAR O BOTÃO DE ADICIONAR JOGADOR */
-		x = x_botao_adicionar_jogador
-		y = y_botao_adicionar_jogador
-		largura = largura_botao_adicionar_jogador
-		altura = altura_botao_adicionar_jogador
-		cor_botao = cor_botao_adicionar_jogador
-		cor_texto = 0x000000
-		desenhar_botao(x, y, largura, altura, cor_botao, verdadeiro, "Adicionar jogador", tamanho_texto, cor_texto, verdadeiro)
+		se (janela_atual == JANELA_TABELA ou janela_atual == JANELA_ADICIONAR_JOGADOR)
+		{
+			x = x_botao_adicionar_jogador
+			y = y_botao_adicionar_jogador
+			largura = largura_botao_adicionar_jogador
+			altura = altura_botao_adicionar_jogador
+			cor_botao = cor_botao_adicionar_jogador
+			cor_texto = cor_texto_botoes_menu
+			texto_botao = "Adicionar jogador"
+			desenhar_botao(x, y, largura, altura, cor_botao, verdadeiro, texto_botao, tamanho_texto, cor_texto, verdadeiro)
+		}
 		
 		/*  DESENHAR O BOTÃO DE REMOVER JOGADOR */
 		x = x_botao_remover_jogador
@@ -377,17 +418,30 @@ programa
 		largura = largura_botao_remover_jogador
 		altura = altura_botao_remover_jogador
 		cor_botao = cor_botao_remover_jogador
-		cor_texto = 0x000000
-		desenhar_botao(x, y, largura, altura, cor_botao, verdadeiro, "Remover jogador", tamanho_texto, cor_texto, verdadeiro)
+		cor_texto = cor_texto_botoes_menu
+		texto_botao = "Remover jogador"
+		se (janela_atual == JANELA_REMOVER_JOGADOR)
+		{
+			texto_botao = "Selecione os jogadores para remover"
+			x = x_botao_adicionar_jogador
+			y = y_botao_adicionar_jogador
+			largura *= 2
+		}
+		
+		desenhar_botao(x, y, largura, altura, cor_botao, verdadeiro, texto_botao, tamanho_texto, cor_texto, verdadeiro)
 		
 		/*  DESENHAR O BOTÃO DE SALVAR PARTIDA */
-		x = x_botao_finalizar_rodada
-		y = y_botao_finalizar_rodada
-		largura = largura_botao_finalizar_rodada
-		altura = altura_botao_finalizar_rodada
-		cor_botao = cor_botao_finalizar_rodada
-		cor_texto = 0x000000
-		desenhar_botao(x, y, largura, altura, cor_botao, verdadeiro, "FINALIZAR RODADA", tamanho_texto, cor_texto, verdadeiro)
+		se (janela_atual == JANELA_TABELA)
+		{
+			x = x_botao_finalizar_rodada
+			y = y_botao_finalizar_rodada
+			largura = largura_botao_finalizar_rodada
+			altura = altura_botao_finalizar_rodada
+			cor_botao = cor_botao_finalizar_rodada
+			cor_texto = cor_texto_botoes_menu
+			texto_botao = "FINALIZAR RODADA"
+			desenhar_botao(x, y, largura, altura, cor_botao, verdadeiro, texto_botao, tamanho_texto, cor_texto, verdadeiro)
+		}
 
 		
 	}
@@ -485,23 +539,6 @@ programa
 					
 					desenhar_botao(x, y, largura, altura, cor_botao, verdadeiro, texto, tamanho_texto, cor_texto, verdadeiro)
 					
-					/*
-					y = y_inicial - (tamanho_botoes_de_pontuacao_tabela_de_jogadores / 2 + padding_botoes_de_pontuacao_tabela_de_jogadores / 2)
-					g.desenhar_retangulo(x, y - 1, tamanho_botoes_de_pontuacao_tabela_de_jogadores, tamanho_botoes_de_pontuacao_tabela_de_jogadores, verdadeiro, verdadeiro)
-	
-					// pintar bordas do botão
-					g.definir_cor(0x000000)
-					y = y_inicial - (tamanho_botoes_de_pontuacao_tabela_de_jogadores / 2 + padding_botoes_de_pontuacao_tabela_de_jogadores / 2)
-					g.desenhar_retangulo(x, y - 1, tamanho_botoes_de_pontuacao_tabela_de_jogadores, tamanho_botoes_de_pontuacao_tabela_de_jogadores, verdadeiro, falso)
-					
-					// desenhar texto do botão de pontuação
-					g.definir_cor(0x000000)
-					g.definir_tamanho_texto(tamanho_texto_botoes_de_pontuacao_tabela_de_jogadores)
-					inteiro x_aux = x + tamanho_botoes_de_pontuacao_tabela_de_jogadores / 2
-					inteiro y_aux = y + tamanho_botoes_de_pontuacao_tabela_de_jogadores / 2
-					desenhar_texto_centralizado(x_aux, y_aux, texto_botoes_de_pontuacao_tabela_de_jogadores[j])
-					*/
-
 					// atualizar as coordenadas do botão
 					x_botoes_de_pontuacao_tabela_de_jogadores_de_cada_jogador[i][j] = x
 					y_botoes_de_pontuacao_tabela_de_jogadores_de_cada_jogador[i][j] = y
@@ -553,26 +590,28 @@ programa
 		inteiro x_botao_cancelar = x_botao_cancelar_janela_remover_jogador
 		inteiro x_botao_confirmar = x_botao_confirmar_janela_remover_jogador
 		inteiro y_botoes = y_botoes_janela_remover_jogador
-		
-		// desenha o fundo do botão de cancelar
-		g.definir_cor(cor_botao_cancelar)
-		g.desenhar_retangulo(x_botao_cancelar, y_botoes, largura_botoes_janela_remover_jogador, altura_botoes_janela_remover_jogador, verdadeiro, verdadeiro)
 
-		// desenhar o texto do botão
-		g.definir_cor(0x000000)
-		desenhar_texto_centralizado(x_botao_cancelar + largura_botoes_janela_remover_jogador / 2, y_botoes + altura_botoes_janela_remover_jogador / 2, "Cancelar")
+		inteiro x, y, largura, altura, cor_botao, cor_texto = 0x000000
+		real tamanho_texto = TAMANHO_PADRAO_DE_TEXTO_DE_BOTAO
+
+		largura = largura_botoes_janela_remover_jogador
+		altura = altura_botoes_janela_remover_jogador
 		
-		// desenha o fundo do botão de confirmar
+		// desenha o botão de cancelar
+		x = x_botao_cancelar_janela_remover_jogador
+		y = y_botoes_janela_remover_jogador
+		cor_botao = cor_botao_cancelar
+		desenhar_botao(x, y, largura, altura, cor_botao, verdadeiro, "Cancelar", tamanho_texto, cor_texto, verdadeiro)
+
+		// desenhar o botão de confirmar
+		x = x_botao_confirmar_janela_remover_jogador
+		y = y_botoes_janela_remover_jogador
 		se (nome_novo_jogador_eh_valido)
-			g.definir_cor(cor_botao_confirmar_ativado)
+			cor_botao = cor_botao_confirmar_ativado
 		senao
-			g.definir_cor(cor_botao_confirmar_desativado)
-			
-		g.desenhar_retangulo(x_botao_confirmar, y_botoes, largura_botoes_janela_remover_jogador, altura_botoes_janela_remover_jogador, verdadeiro, verdadeiro)
-
-		// desenhar o texto do botão
-		g.definir_cor(0x000000)
-		desenhar_texto_centralizado(x_botao_confirmar + largura_botoes_janela_remover_jogador / 2, y_botoes + altura_botoes_janela_remover_jogador / 2, "Confirmar")
+			cor_botao = cor_botao_confirmar_desativado
+		desenhar_botao(x, y, largura, altura, cor_botao, verdadeiro, "Confirmar", tamanho_texto, cor_texto, verdadeiro)
+		
 	}
 
 	funcao desenhar_janela_de_adicionar_jogador()
@@ -583,8 +622,8 @@ programa
 		inteiro y = y_janela_adicionar_jogador
 		inteiro grossura_bordas = 2
 		inteiro padding = padding_janela_adicionar_jogador
-		inteiro largura_botoes = largura_botoes_janela_adicionar_jogador
-		inteiro altura_botoes = altura_botoes_janela_adicionar_jogador
+		inteiro largura = largura_botoes_janela_adicionar_jogador
+		inteiro altura = altura_botoes_janela_adicionar_jogador
 
 		/*  DESENHAR A SUBJANELA */
 		// desenha a borda da subjanela
@@ -600,7 +639,23 @@ programa
 		inteiro x_botao_cancelar = x_botao_cancelar_janela_adicionar_jogador
 		inteiro x_botao_confirmar = x_botao_confirmar_janela_adicionar_jogador
 		inteiro y_botoes = y_botoes_janela_adicionar_jogador
+		inteiro cor_botao
+		real tamanho_texto = TAMANHO_PADRAO_DE_TEXTO_DE_BOTAO
+		inteiro cor_texto = 0x000000
 		
+		// desenha o botão de cancelar
+		cor_botao = cor_botao_cancelar
+		desenhar_botao(x_botao_cancelar, y_botoes, largura, altura, cor_botao, verdadeiro, "Cancelar", tamanho_texto, cor_texto, verdadeiro)
+
+		// desenhar o botão de confirmar
+		se (nome_novo_jogador_eh_valido)
+			cor_botao = cor_botao_confirmar_ativado
+		senao
+			cor_botao = cor_botao_confirmar_desativado
+		
+		desenhar_botao(x_botao_confirmar, y_botoes, largura, altura, cor_botao, verdadeiro, "Confirmar", tamanho_texto, cor_texto, verdadeiro)
+
+		/*
 		// desenha o fundo do botão de cancelar
 		g.definir_cor(cor_botao_cancelar)
 		g.desenhar_retangulo(x_botao_cancelar, y_botoes, largura_botoes, altura_botoes, verdadeiro, verdadeiro)
@@ -620,7 +675,8 @@ programa
 		// desenhar o texto do botão
 		g.definir_cor(0x000000)
 		desenhar_texto_centralizado(x_botao_confirmar + largura_botoes / 2, y_botoes + altura_botoes / 2, "Confirmar")
-		
+
+		//*/
 		/*  DESENHAR TEXTO INSTRUTIVO */
 		g.definir_cor(0x000000)
 		desenhar_texto_centralizado(x + largura_janela_adicionar_jogador / 2, y + 30, "Escreva o nome:")
@@ -770,9 +826,13 @@ programa
 			foi_pressionado = verdadeiro
 
 			se (numero_de_jogadores < MAXIMO_DE_JOGADORES)
+			{
 				janela_atual = JANELA_ADICIONAR_JOGADOR
+			}
 			senao
+			{
 				escreva("MÁXIMO DE JOGADORES ATINGIDO.\n")
+			}
 		}
 
 		se (nao foi_pressionado)
@@ -908,15 +968,23 @@ programa
 			}
 			
 			se (numero_de_jogadores > 0)
+			{
 				janela_atual = JANELA_REMOVER_JOGADOR
+			}
 			senao
+			{
 				escreva("NÃO HÁ JOGADORES PARA REMOVER.\n")
+			}
 		}
 
 		se (nao foi_pressionado)
+		{
 			escreva("botão de remover jogador não foi pressionado\n")
+		}
 		senao
+		{
 			escreva("botão de remover jogador foi pressionado\n")
+		}
 	}
 
 	
@@ -962,8 +1030,6 @@ programa
 			inteiro x = x_check_boxes[i]
 			inteiro y = y_check_boxes[i]
 
-			//inteiro t = tamanho_check_box_remover_jogador
-			//escreva("Check box ", i, ": ", x, " < ", mx, " < ", x + t, " e ", y, " < ", my, " < ", y + t, "\n")
 			se ((x < mx e mx < x + tamanho_check_box_remover_jogador) e (y < my e my < y + tamanho_check_box_remover_jogador))
 			{
 				jogadores_para_remover[i] = nao jogadores_para_remover[i]
@@ -1109,9 +1175,13 @@ programa
 		}
 
 		se (foi_pressionado)
+		{
 			salvar_tabela_de_pontuacao()
+		}
 		senao
+		{
 			escreva("botão de finalizar partida não foi pressionado\n")
+		}
 	}
 	
 	// COPIA TODAS AS INFORMAÇÕES DO JOGADOR FONTE PARA O JOGADOR DESTINO
