@@ -1,10 +1,3 @@
-/*
-ESTﾃ宇ANE:	35 | 15 | 25
-ALONSO:	65 | 45 | 15
-VINﾃ垢IUS	20 | 25 | 30
-
-
-*/
 programa
 {
 	inclua biblioteca Mouse --> m
@@ -14,6 +7,8 @@ programa
 	inclua biblioteca Util --> u
 	inclua biblioteca Matematica --> mat
 	inclua biblioteca Tipos --> tp
+	inclua biblioteca Arquivos --> arq
+	inclua biblioteca Objetos --> obj
 	
 	/// CONSTANTES
 	const inteiro LARGURA_JANELA_PADRAO = 720
@@ -25,6 +20,17 @@ programa
 	const inteiro JANELA_TABELA = 0
 	const inteiro JANELA_ADICIONAR_JOGADOR = 1
 	const inteiro JANELA_REMOVER_JOGADOR = 2
+
+	const inteiro CARACTER_ASPAS = 1
+	const inteiro CARACTER_ABRE_CHAVE = 2
+	const inteiro CARACTER_FECHA_CHAVE = 4
+	const inteiro CARACTER_ABRE_COLCHETE = 8
+	const inteiro CARACTER_FECHA_COLCHETE = 16
+	const inteiro CARACTER_VIRGULA = 32
+	const inteiro CARACTER_DOIS_PONTOS = 64
+	const inteiro CARACTER_HIFEN = 128
+	const inteiro CARACTER_NUMERO = 256
+	const inteiro CARACTER_LETRA = 512
 	
 	/// VARIÁVEIS DE CONFIGURAÇÃO DO MODO DE DESENHO
 	
@@ -66,23 +72,23 @@ programa
 	inteiro altura_botao_adicionar_jogador = ALTURA_PADRAO_DE_BOTAO
 	inteiro x_botao_adicionar_jogador = 0
 	inteiro y_botao_adicionar_jogador = 0
-	inteiro cor_fundo_botao_adicionar_jogador = 0x11ff44
+	inteiro cor_botao_adicionar_jogador = 0x11ff44
 
 	// dimensões do botão de remover jogador
 	inteiro largura_botao_remover_jogador = largura_janela / 2
 	inteiro altura_botao_remover_jogador = ALTURA_PADRAO_DE_BOTAO
 	inteiro x_botao_remover_jogador = largura_janela / 2
 	inteiro y_botao_remover_jogador = 0
-	inteiro cor_fundo_botao_remover_jogador = 0xff3322
+	inteiro cor_botao_remover_jogador = 0xff4c3b
 
-	// dimensões do botão de salvar partida
-	inteiro padding_botao_salvar_partida = 20
-	inteiro padding_inferior_botao_salvar_partida = 20
-	inteiro largura_botao_salvar_partida = largura_janela / 2 - 2 * padding_botao_salvar_partida
-	inteiro altura_botao_salvar_partida = 50
-	inteiro x_botao_salvar_partida = largura_janela / 2 + padding_botao_salvar_partida
-	inteiro y_botao_salvar_partida = altura_janela - altura_botao_salvar_partida - padding_inferior_botao_salvar_partida
-	inteiro cor_botao_salvar_partida = 0x666666
+	// dimensões do botão de finalizar rodada
+	inteiro padding_botao_finalizar_rodada = 20
+	inteiro padding_inferior_botao_finalizar_rodada = 20
+	inteiro largura_botao_finalizar_rodada = largura_janela / 2 - 2 * padding_botao_finalizar_rodada
+	inteiro altura_botao_finalizar_rodada = 50
+	inteiro x_botao_finalizar_rodada = largura_janela / 2 + padding_botao_finalizar_rodada
+	inteiro y_botao_finalizar_rodada = altura_janela - altura_botao_finalizar_rodada - padding_inferior_botao_finalizar_rodada
+	inteiro cor_botao_finalizar_rodada = 0xdfff52
 
 	// dimensões do botão de histórico de partidas
 	// A-FAZER
@@ -124,7 +130,7 @@ programa
 
 	// controle do número de jogadores
 	inteiro numero_de_jogadores = 3
-	cadeia nome_jogadores[MAXIMO_DE_JOGADORES] = {"ALONSO", "ESTEFANE", "VINICIUS", "", "", "", "", "", "", ""}
+	cadeia nome_jogadores[MAXIMO_DE_JOGADORES] = {"FULANO", "CICLANO", "BELTRANO", "", "", "", "", "", "", ""}
 	inteiro pontuacao_jogadores[MAXIMO_DE_JOGADORES] = {5, 10, 15, 0, 0, 0, 0, 0, 0, 0}
 
 	inteiro x_botoes_de_pontuacao_tabela_de_jogadores_de_cada_jogador[MAXIMO_DE_JOGADORES][NUMERO_DE_BOTOES_DE_PONTUACAO_TABELA_DE_JOGADORES]
@@ -148,7 +154,7 @@ programa
 
 	inteiro padding_janela_adicionar_jogador = 10
 
-	// dimensões dos botões
+	// dimensões dos botões na janela adicionar jogador
 	inteiro largura_botoes_janela_adicionar_jogador = (largura_janela_adicionar_jogador - padding_janela_adicionar_jogador * 3) / 2
 	inteiro altura_botoes_janela_adicionar_jogador = ALTURA_PADRAO_DE_BOTAO
 	inteiro y_botoes_janela_adicionar_jogador = y_janela_adicionar_jogador + altura_janela_adicionar_jogador - padding_janela_adicionar_jogador - altura_botoes_janela_adicionar_jogador
@@ -159,7 +165,7 @@ programa
 	inteiro cor_botao_confirmar_desativado = 0x38522e
 	inteiro cor_botao_cancelar = 0xaaaaaa
 
-	// dimensões da caixa de texto
+	// dimensões da caixa de texto na janela adicionar jogador
 	inteiro altura_caixa_de_texto_janela_adicionar_jogador = 50
 	inteiro largura_caixa_de_texto_janela_adicionar_jogador = largura_janela_adicionar_jogador - padding_janela_adicionar_jogador * 2
 	inteiro x_caixa_de_texto_janela_adicionar_jogador = x_janela_adicionar_jogador + padding_janela_adicionar_jogador
@@ -183,7 +189,7 @@ programa
 	inteiro x_check_boxes[MAXIMO_DE_JOGADORES]
 	inteiro y_check_boxes[MAXIMO_DE_JOGADORES]
 
-	// dimensões dos botões
+	// dimensões dos botões na janela de remover jogador
 	inteiro largura_botoes_janela_remover_jogador = largura_janela / 2
 	inteiro altura_botoes_janela_remover_jogador = 50
 	inteiro y_botoes_janela_remover_jogador = altura_janela - altura_botoes_janela_remover_jogador
@@ -196,6 +202,8 @@ programa
 	
 	funcao inicio()
 	{
+		abrir_historico_de_partidas()
+		carregar_ultima_partida_salva()
 		inicializar()
 		
 		enquanto(nao t.tecla_pressionada(t.TECLA_ESC))
@@ -216,7 +224,7 @@ programa
 	{
 		g.renderizar()
 		
-		desenhar_fundo()
+		desenhar_fundo_janela_principal()
 		desenhar_tabela_de_jogadores()
 		desenhar_menu_superior()
 
@@ -330,7 +338,7 @@ programa
 		g.desenhar_texto(x_t, y_t, texto)
 	}
 
-	funcao desenhar_fundo()
+	funcao desenhar_fundo_janela_principal()
 	{
 		g.definir_cor(0xffffff)
 		g.desenhar_retangulo(0, 0, largura_janela, altura_janela, falso, verdadeiro)
@@ -359,68 +367,29 @@ programa
 		y = y_botao_adicionar_jogador
 		largura = largura_botao_adicionar_jogador
 		altura = altura_botao_adicionar_jogador
-		cor_botao = cor_fundo_botao_adicionar_jogador
+		cor_botao = cor_botao_adicionar_jogador
 		cor_texto = 0x000000
-		
 		desenhar_botao(x, y, largura, altura, cor_botao, verdadeiro, "Adicionar jogador", tamanho_texto, cor_texto, verdadeiro)
 		
-		/*
-		// pintar fundo do botão
-		g.definir_cor(cor_fundo_botao_adicionar_jogador)
-		g.desenhar_retangulo(x_botao_adicionar_jogador, y_botao_adicionar_jogador, largura_botao_adicionar_jogador, altura_botao_adicionar_jogador, verdadeiro, verdadeiro)
-		// desenhar bordas do botão
-		g.definir_cor(0x000000)
-		g.desenhar_retangulo(x_botao_adicionar_jogador, y_botao_adicionar_jogador, largura_botao_adicionar_jogador, altura_botao_adicionar_jogador, verdadeiro, falso)
-		// desenhar texto do botão
-		x = x_botao_adicionar_jogador + largura_botao_adicionar_jogador / 2
-		y = y_botao_adicionar_jogador + altura_botao_adicionar_jogador / 2
-		g.definir_cor(0x000000)
-		desenhar_texto_centralizado(x, y, "Adicionar jogador")
-		*/
-		
 		/*  DESENHAR O BOTÃO DE REMOVER JOGADOR */
-		
 		x = x_botao_remover_jogador
 		y = y_botao_remover_jogador
 		largura = largura_botao_remover_jogador
 		altura = altura_botao_remover_jogador
-		cor_botao = cor_fundo_botao_remover_jogador
+		cor_botao = cor_botao_remover_jogador
 		cor_texto = 0x000000
-		
 		desenhar_botao(x, y, largura, altura, cor_botao, verdadeiro, "Remover jogador", tamanho_texto, cor_texto, verdadeiro)
 		
-		/*
-		// pintar fundo do botão
-		g.definir_cor(cor_fundo_botao_remover_jogador)
-		g.desenhar_retangulo(x_botao_remover_jogador, y_botao_remover_jogador, largura_botao_remover_jogador, altura_botao_remover_jogador, verdadeiro, verdadeiro)
-		// desenhar bordas do botão
-		g.definir_cor(0x000000)
-		g.desenhar_retangulo(x_botao_remover_jogador, y_botao_remover_jogador, largura_botao_remover_jogador, altura_botao_remover_jogador, verdadeiro, falso)
-		// desenhar texto do botão
-		x = x_botao_remover_jogador + largura_botao_remover_jogador / 2
-		y = y_botao_remover_jogador + altura_botao_remover_jogador / 2
-		g.definir_cor(0x000000)
-		desenhar_texto_centralizado(x, y, "Remover jogador")
-		*/
-
 		/*  DESENHAR O BOTÃO DE SALVAR PARTIDA */
-		// pintar fundo do botão
-		g.definir_cor(cor_botao_salvar_partida)
-		x = x_botao_salvar_partida
-		y = y_botao_salvar_partida
-		g.desenhar_retangulo(x, y, largura_botao_salvar_partida, altura_botao_salvar_partida, verdadeiro, verdadeiro)
+		x = x_botao_finalizar_rodada
+		y = y_botao_finalizar_rodada
+		largura = largura_botao_finalizar_rodada
+		altura = altura_botao_finalizar_rodada
+		cor_botao = cor_botao_finalizar_rodada
+		cor_texto = 0x000000
+		desenhar_botao(x, y, largura, altura, cor_botao, verdadeiro, "FINALIZAR RODADA", tamanho_texto, cor_texto, verdadeiro)
 
-		// pintar fundo mais claro
-		g.definir_cor(cor_botao_salvar_partida + 0x333333)
-		x += 2
-		y += 2
-		g.desenhar_retangulo(x_botao_salvar_partida, y_botao_salvar_partida - 3, largura_botao_salvar_partida - 3, altura_botao_salvar_partida, verdadeiro, verdadeiro)
 		
-		// desenhar texto do botão
-		x = x_botao_salvar_partida + largura_botao_salvar_partida / 2
-		y = y_botao_salvar_partida + altura_botao_salvar_partida / 2
-		g.definir_cor(0x000000)
-		desenhar_texto_centralizado(x, y, "FINALIZAR RODADA")
 	}
 	
 	funcao desenhar_tabela_de_jogadores()
@@ -439,7 +408,8 @@ programa
 		
 		se (janela_atual == JANELA_REMOVER_JOGADOR)
 			x = x_cabecalho_tabela_de_jogadores + tamanho_check_box_remover_jogador + padding_check_box_remover_jogador
-		
+
+		// escrever label da tabela
 		g.definir_cor(0x000000)
 		g.desenhar_texto(x + padding_esquerda, y, "Nome")
 		g.desenhar_texto(x + padding_esquerda + largura_tabela_de_jogadores / 3, y, "Pontuação")
@@ -489,6 +459,9 @@ programa
 			
 			inteiro x_inicial = x + largura_linha_tabela_de_jogadores / 3
 			inteiro y_inicial = y
+			inteiro cor_botao
+			largura = tamanho_botoes_de_pontuacao_tabela_de_jogadores
+			altura = tamanho_botoes_de_pontuacao_tabela_de_jogadores
 			se (janela_atual != JANELA_REMOVER_JOGADOR)
 			{
 				/*  DESENHAR BOTÕES DE ADICIONAR OU REMOVER PONTUAÇÃO */
@@ -496,13 +469,23 @@ programa
 				para (inteiro j = 0; j < NUMERO_DE_BOTOES_DE_PONTUACAO_TABELA_DE_JOGADORES; j ++)
 				{
 					x = x_inicial + (tamanho_botoes_de_pontuacao_tabela_de_jogadores + padding_botoes_de_pontuacao_tabela_de_jogadores) * j
+					y = y_inicial - (tamanho_botoes_de_pontuacao_tabela_de_jogadores / 2 + padding_botoes_de_pontuacao_tabela_de_jogadores / 2)
 					
 					// pintar fundo do botão
 					se (acao_botoes_de_pontuacao_tabela_de_jogadores[j] < 0)
-						g.definir_cor(cor_botoes_de_pontuacao_negativa_tabela_de_jogadores)
+						//g.definir_cor(cor_botoes_de_pontuacao_negativa_tabela_de_jogadores)
+						cor_botao = cor_botoes_de_pontuacao_negativa_tabela_de_jogadores
 					senao
-						g.definir_cor(cor_botoes_de_pontuacao_positiva_tabela_de_jogadores)
+						cor_botao = cor_botoes_de_pontuacao_positiva_tabela_de_jogadores
+						//g.definir_cor(cor_botoes_de_pontuacao_positiva_tabela_de_jogadores)
+
+					cadeia texto = texto_botoes_de_pontuacao_tabela_de_jogadores[j]
+					inteiro cor_texto = 0xefefef
+					real tamanho_texto = tamanho_texto_botoes_de_pontuacao_tabela_de_jogadores
 					
+					desenhar_botao(x, y, largura, altura, cor_botao, verdadeiro, texto, tamanho_texto, cor_texto, verdadeiro)
+					
+					/*
 					y = y_inicial - (tamanho_botoes_de_pontuacao_tabela_de_jogadores / 2 + padding_botoes_de_pontuacao_tabela_de_jogadores / 2)
 					g.desenhar_retangulo(x, y - 1, tamanho_botoes_de_pontuacao_tabela_de_jogadores, tamanho_botoes_de_pontuacao_tabela_de_jogadores, verdadeiro, verdadeiro)
 	
@@ -511,16 +494,18 @@ programa
 					y = y_inicial - (tamanho_botoes_de_pontuacao_tabela_de_jogadores / 2 + padding_botoes_de_pontuacao_tabela_de_jogadores / 2)
 					g.desenhar_retangulo(x, y - 1, tamanho_botoes_de_pontuacao_tabela_de_jogadores, tamanho_botoes_de_pontuacao_tabela_de_jogadores, verdadeiro, falso)
 					
-					// atualizar as coordenadas do botão
-					x_botoes_de_pontuacao_tabela_de_jogadores_de_cada_jogador[i][j] = x
-					y_botoes_de_pontuacao_tabela_de_jogadores_de_cada_jogador[i][j] = y
-					
 					// desenhar texto do botão de pontuação
 					g.definir_cor(0x000000)
 					g.definir_tamanho_texto(tamanho_texto_botoes_de_pontuacao_tabela_de_jogadores)
 					inteiro x_aux = x + tamanho_botoes_de_pontuacao_tabela_de_jogadores / 2
 					inteiro y_aux = y + tamanho_botoes_de_pontuacao_tabela_de_jogadores / 2
 					desenhar_texto_centralizado(x_aux, y_aux, texto_botoes_de_pontuacao_tabela_de_jogadores[j])
+					*/
+
+					// atualizar as coordenadas do botão
+					x_botoes_de_pontuacao_tabela_de_jogadores_de_cada_jogador[i][j] = x
+					y_botoes_de_pontuacao_tabela_de_jogadores_de_cada_jogador[i][j] = y
+					
 				}
 			}
 
@@ -728,6 +713,7 @@ programa
 				tratar_botao_pontuacao_para_jogador(mx, my)
 				tratar_botao_adicionar_jogador(mx, my)
 				tratar_botao_remover_jogador(mx, my)
+				tratar_botao_finalizar_rodada(mx, my)
 			}
 			senao se (janela_atual == JANELA_ADICIONAR_JOGADOR)
 			{
@@ -740,7 +726,7 @@ programa
 		}
 	}
 
-	/// CHECA E TRATA O CASO ONDE O CLIQUE DO MOUSE FOI EM ALGUM BOTÃO DE PONTUA�ｾ�ｿｽ�ｾ�繧ｰ
+	/// CHECA E TRATA O CASO ONDE O CLIQUE DO MOUSE FOI EM ALGUM BOTÃO DE PONTUA�ｾ�ｿｽ�ｾ�繧ｰ NA TELA INICIAL
 	funcao tratar_botao_pontuacao_para_jogador(inteiro mx, inteiro my)
 	{
 		escreva("[Pontuação] Posição x: ", mx, " | Posição y: ", my, "\n")
@@ -769,7 +755,7 @@ programa
 		}
 	}
 
-	/// CHECA E TRATA O CASO ONDE O CLIQUE DO MOUSE FOI NO BOTÃO DE ADICIONAR JOGADOR
+	/// CHECA E TRATA O CASO ONDE O CLIQUE DO MOUSE FOI NO BOTÃO DE "ADICIONAR JOGADOR" NA TELA INICIAL
 	funcao tratar_botao_adicionar_jogador(inteiro mx, inteiro my)
 	{
 		escreva("[Adicionar Jogador] Posição x: ", mx, " | Posição y: ", my, "\n")
@@ -786,7 +772,7 @@ programa
 			se (numero_de_jogadores < MAXIMO_DE_JOGADORES)
 				janela_atual = JANELA_ADICIONAR_JOGADOR
 			senao
-				escreva("Mﾃ々IMO DE JOGADORES ATINGIDO.\n")
+				escreva("MÁXIMO DE JOGADORES ATINGIDO.\n")
 		}
 
 		se (nao foi_pressionado)
@@ -904,7 +890,7 @@ programa
 	}
 
 	
-	/// CHECA E TRATA O CASO ONDE O CLIQUE DO MOUSE FOI NO BOTÃO DE REMOVER JOGADOR
+	/// CHECA E TRATA O CASO ONDE O CLIQUE DO MOUSE FOI NO BOTÃO DE REMOVER JOGADOR NA TELA INICIAL
 	funcao tratar_botao_remover_jogador(inteiro mx, inteiro my)
 	{
 		inteiro x = x_botao_remover_jogador
@@ -1014,7 +1000,120 @@ programa
 		numero_de_jogadores = j
 		janela_atual = JANELA_TABELA
 	}
+	
+	/// grava a rodada atual no banco de dados
+	funcao salvar_tabela_de_pontuacao()
+	{
+		inteiro numero_rodada = 1
+		inteiro banco = arq.abrir_arquivo("./historico.txt", arq.MODO_ACRESCENTAR)
+		
+		escreva("O arquivo de tabela de pontuação foi aberto\n")
+		
+		cadeia linha = "{\"rodada\": " + numero_rodada + ", \"numero de jogadores\": " + numero_de_jogadores + ", "
+		
+		linha += "\"jogadores\": ["
+		para (inteiro i = 0; i < numero_de_jogadores; i ++)
+		{
+			cadeia linha_jogador = "{\"nome\": \"" + nome_jogadores[i] + "\", \"pontos\": " + pontuacao_jogadores[i] + "}"
 
+			se (i > 0) linha += ", "
+			
+			linha += linha_jogador
+		}
+		linha += "]}"
+		
+		arq.escrever_linha(linha, banco)
+		escreva("Tabela de pontuação foi salva\n")
+
+		arq.fechar_arquivo(banco)
+		escreva("O arquivo de tabela de pontuação foi fechado\n")
+
+		// salvar a última rodada num arquivo temporário
+		inteiro ultima = arq.abrir_arquivo("./historico.temp", arq.MODO_ESCRITA)
+		arq.escrever_linha(linha, ultima)
+		arq.fechar_arquivo(ultima)
+	}
+
+	/// abre o histório de partidas
+	funcao abrir_historico_de_partidas()
+	{
+		escreva("Histórico de partidas:\n")
+		
+		inteiro banco = arq.abrir_arquivo("./historico.txt", arq.MODO_LEITURA)
+
+		enquanto (nao arq.fim_arquivo(banco))
+		{
+			cadeia linha = arq.ler_linha(banco)
+			escreva(linha, "\n")
+		}
+
+		arq.fechar_arquivo(banco)
+	}
+	
+	/// abre a última rodada salva no banco de dados
+	funcao carregar_ultima_partida_salva()
+	{
+		se (arq.arquivo_existe("./historico.temp"))
+		{
+			inteiro historico = arq.abrir_arquivo("./historico.temp", arq.MODO_LEITURA)
+			inteiro ultima_partida_disponivel = 0
+			cadeia linha = ""
+			
+			enquanto(nao arq.fim_arquivo(historico))
+			{
+				linha = arq.ler_linha(historico)
+				inteiro partida_aux = obj.criar_objeto_via_json(linha)
+
+				se (obj.contem_propriedade(partida_aux, "rodada") e obj.contem_propriedade(partida_aux, "numero de jogadores") e obj.contem_propriedade(partida_aux, "jogadores"))
+				{
+					ultima_partida_disponivel = partida_aux
+				}
+			}
+
+			se (obj.contem_propriedade(ultima_partida_disponivel, "rodada") e obj.contem_propriedade(ultima_partida_disponivel, "numero de jogadores") e obj.contem_propriedade(ultima_partida_disponivel, "jogadores"))
+			{
+				numero_de_jogadores = obj.obter_propriedade_tipo_inteiro(ultima_partida_disponivel, "numero de jogadores")
+				para (inteiro i = 0; i < numero_de_jogadores; i ++)
+				{
+					inteiro jogador = obj.obter_propriedade_tipo_objeto_em_vetor(ultima_partida_disponivel, "jogadores", i)
+
+					nome_jogadores[i] = obj.obter_propriedade_tipo_cadeia(jogador, "nome")
+					pontuacao_jogadores[i] = obj.obter_propriedade_tipo_inteiro(jogador, "pontos")
+				}
+			}
+			senao
+			{
+				escreva("Erro ao carregar o histórico da última partida\n")
+			}
+			
+			arq.fechar_arquivo(historico)
+		}
+		senao
+		{
+			escreva("Sem histórico de partidas\n")
+		}
+	}
+
+	/// CHECA E TRATA O CASO ONDE O CLIQUE DO MOUSE FOI NO BOTÃO DE FINALIZAR RODADA NA TELA INICIAL
+	funcao tratar_botao_finalizar_rodada(inteiro mx, inteiro my)
+	{
+		inteiro x = x_botao_finalizar_rodada
+		inteiro y = y_botao_finalizar_rodada
+		
+		logico foi_pressionado = falso
+
+		se ((x < mx e mx < x + largura_botao_finalizar_rodada) e (y < my e my < y + altura_botao_finalizar_rodada))
+		{
+			foi_pressionado = verdadeiro
+			escreva("botão de finalizar partida foi pressionado\n")
+		}
+
+		se (foi_pressionado)
+			salvar_tabela_de_pontuacao()
+		senao
+			escreva("botão de finalizar partida não foi pressionado\n")
+	}
+	
 	// COPIA TODAS AS INFORMAÇÕES DO JOGADOR FONTE PARA O JOGADOR DESTINO
 	funcao copiar_informacoes_de_jogadores(inteiro indice_fonte, inteiro indice_destino)
 	{
